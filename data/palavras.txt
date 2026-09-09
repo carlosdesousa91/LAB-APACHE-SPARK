@@ -1,0 +1,7 @@
+Apache Spark é um framework de processamento distribuído.
+Com Spark podemos analisar grandes volumes de dados.
+Spark Spark Spark é rápido e escalável.
+Dados dados dados são o novo petróleo.
+Aprender Spark ajuda em Big Data e engenharia de dados.
+Python e Spark juntos formam o PySpark.
+Lab de Spark para alunos iniciantes.

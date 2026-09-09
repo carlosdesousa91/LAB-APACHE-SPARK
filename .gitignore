@@ -1,0 +1,9 @@
+*.pyc
+__pycache__/
+.DS_Store
+.idea/
+.vscode/
+*.log
+spark-warehouse/
+.metastore/
+derby.log
