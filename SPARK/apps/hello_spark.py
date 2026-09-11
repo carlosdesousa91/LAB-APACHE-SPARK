@@ -18,7 +18,7 @@ def main():
         ("Ana", 25),
         ("Bruno", 30),
         ("Carla", 22),
-        ("Diego", 28),
+        ("Diogo", 28),
     ]
 
     df = spark.createDataFrame(dados, ["nome", "idade"])

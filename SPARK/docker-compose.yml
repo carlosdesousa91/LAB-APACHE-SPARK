@@ -58,6 +58,26 @@ services:
     networks:
       - spark-net
 
+  spark-worker-3:
+    image: apache/spark:3.5.5-python3
+    container_name: spark-worker-3
+    hostname: spark-worker-3
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    environment:
+      - SPARK_NO_DAEMONIZE=true
+      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_WEBUI_PORT=8081
+    ports:
+      - "8083:8081"   # Interface web do Worker 3
+    volumes:
+      - ./apps:/opt/spark-apps
+      - ./data:/opt/spark-data
+    depends_on:
+      - spark-master
+    networks:
+      - spark-net
+
 networks:
   spark-net:
     driver: bridge

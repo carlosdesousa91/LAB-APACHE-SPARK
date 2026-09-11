@@ -31,7 +31,7 @@ def main():
     )
 
     print("=== Contagem de palavras ===")
-    palavras.show(20, truncate=False)
+    palavras.show(200, truncate=False)
 
     spark.stop()
 
