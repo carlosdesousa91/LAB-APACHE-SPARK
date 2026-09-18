@@ -6,7 +6,14 @@ if [ "$(id -u)" -ne 0 ]; then
   exec sudo -E bash "$0" "$@"
 fi
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# Prefer the Cloud Agent checkout root; fall back to repo-relative resolution.
+if [ -d /workspace/SPARK ] && [ -d /workspace/ELASTICSEARCH ]; then
+  ROOT=/workspace
+elif [ -n "${CURSOR_WORKSPACE:-}" ] && [ -d "${CURSOR_WORKSPACE}/SPARK" ]; then
+  ROOT="${CURSOR_WORKSPACE}"
+else
+  ROOT="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd)"
+fi
 
 mkdir -p /etc/docker
 if [ ! -f /etc/docker/daemon.json ]; then
