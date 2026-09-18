@@ -47,39 +47,38 @@ EOF
   usermod -aG docker ubuntu 2>/dev/null || true
 }
 
-start_dockerd_if_needed() {
+ensure_dockerd() {
+  chmod 666 /var/run/docker.sock 2>/dev/null || true
   if docker info >/dev/null 2>&1; then
     return 0
   fi
-  if [ -S /var/run/docker.sock ] && sudo docker info >/dev/null 2>&1; then
-    chmod 666 /var/run/docker.sock || true
-    return 0
-  fi
 
+  # Start daemon only long enough to refresh images; start.sh owns per-boot lifecycle.
   pkill dockerd 2>/dev/null || true
   sleep 1
-  dockerd >/tmp/dockerd.log 2>&1 &
+  local log=/var/tmp/dockerd-install.log
+  rm -f "$log"
+  dockerd >"$log" 2>&1 &
   for _ in $(seq 1 60); do
-    if docker info >/dev/null 2>&1 || sudo docker info >/dev/null 2>&1; then
-      chmod 666 /var/run/docker.sock 2>/dev/null || true
+    chmod 666 /var/run/docker.sock 2>/dev/null || true
+    if docker info >/dev/null 2>&1; then
       return 0
     fi
     sleep 1
   done
-  echo "Failed to start dockerd" >&2
-  tail -50 /tmp/dockerd.log >&2 || true
+  echo "Failed to start dockerd during install" >&2
+  tail -50 "$log" >&2 || true
   exit 1
 }
 
 if [ "$(id -u)" -ne 0 ]; then
-  exec sudo -E bash "$0" "$@"
+  exec sudo -E bash "${BASH_SOURCE[0]}" "$@"
 fi
 
 ensure_docker_packages
 configure_docker
-start_dockerd_if_needed
+ensure_dockerd
 
-# Pre-pull images so labs start quickly
 docker pull apache/spark:3.5.5-python3
 docker pull docker.elastic.co/elasticsearch/elasticsearch:8.17.0
 docker pull docker.elastic.co/kibana/kibana:8.17.0
