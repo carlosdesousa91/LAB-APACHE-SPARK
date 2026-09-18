@@ -1,6 +1,10 @@
+x-spark-image: &spark-image
+  image: lab-spark:3.5.5-python3
+  build: .
+
 services:
   spark-master:
-    image: apache/spark:3.5.5-python3
+    <<: *spark-image
     container_name: spark-master
     hostname: spark-master
     command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
@@ -9,17 +13,21 @@ services:
       - SPARK_MASTER_HOST=spark-master
       - SPARK_MASTER_PORT=7077
       - SPARK_MASTER_WEBUI_PORT=8080
+      - ELASTICSEARCH_URL=http://host.docker.internal:9200
+      - ELASTICSEARCH_INDEX=spark-eventos
     ports:
       - "8080:8080"   # Interface web do Master
       - "7077:7077"   # Porta do cluster
     volumes:
       - ./apps:/opt/spark-apps
       - ./data:/opt/spark-data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - spark-net
 
   spark-worker-1:
-    image: apache/spark:3.5.5-python3
+    <<: *spark-image
     container_name: spark-worker-1
     hostname: spark-worker-1
     command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
@@ -39,7 +47,7 @@ services:
       - spark-net
 
   spark-worker-2:
-    image: apache/spark:3.5.5-python3
+    <<: *spark-image
     container_name: spark-worker-2
     hostname: spark-worker-2
     command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
@@ -59,7 +67,7 @@ services:
       - spark-net
 
   spark-worker-3:
-    image: apache/spark:3.5.5-python3
+    <<: *spark-image
     container_name: spark-worker-3
     hostname: spark-worker-3
     command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077

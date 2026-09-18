@@ -113,6 +113,24 @@ GET alunos/_doc/1
 
 ---
 
+## Passo 5 — Receber dados do Spark (opcional)
+
+O cluster Spark (pasta `SPARK/`) pode enviar eventos mockados para o índice `spark-eventos` pela API REST (`http://localhost:9200`).
+
+Depois de rodar `apps/enviar_elastic.py` no Spark:
+
+```bash
+curl "http://localhost:9200/spark-eventos/_search?pretty"
+```
+
+No Kibana (**Dev Tools**):
+
+```http
+GET spark-eventos/_search
+```
+
+---
+
 ## Parar os serviços
 
 ```bash
