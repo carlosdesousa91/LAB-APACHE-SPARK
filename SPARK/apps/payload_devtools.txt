@@ -1,0 +1,72 @@
+# Cole este conteúdo no DevTools do Kibana (Management > Dev Tools)
+# Execute bloco a bloco com o play ao lado de cada comando.
+
+# 1) Índice de origem — logs fictícios de firewall
+PUT logs-firewall
+{
+  "mappings": {
+    "properties": {
+      "@timestamp": { "type": "date" },
+      "message": { "type": "text" }
+    }
+  }
+}
+
+# 2) Índice de destino — incidentes gerados pelo Spark
+PUT incidentes
+{
+  "mappings": {
+    "properties": {
+      "@timestamp": { "type": "date" },
+      "src_ip": { "type": "ip" },
+      "dest_ip": { "type": "keyword" },
+      "action": { "type": "keyword" },
+      "message": { "type": "text" }
+    }
+  }
+}
+
+# 3) Template de log em formato KV (chave=valor)
+#    Campos usados pelo app: src_ip, dest_ip, action
+#
+#    timestamp=<ISO> hostname=<nome> src_ip=<ip> dest_ip=<ip> src_port=<n> dest_port=<n> proto=<tcp|udp> action=<allow|deny>
+
+# 4) Logs de exemplo — 2 IPs da deny list + 2 IPs limpos
+POST logs-firewall/_doc
+{
+  "@timestamp": "2026-09-23T20:00:00Z",
+  "message": "timestamp=2026-09-23T20:00:00Z hostname=fw-01 src_ip=203.0.113.10 dest_ip=10.0.1.20 src_port=54321 dest_port=22 proto=tcp action=deny"
+}
+
+POST logs-firewall/_doc
+{
+  "@timestamp": "2026-09-23T20:00:05Z",
+  "message": "timestamp=2026-09-23T20:00:05Z hostname=fw-01 src_ip=192.168.1.20 dest_ip=10.0.1.20 src_port=51000 dest_port=443 proto=tcp action=allow"
+}
+
+POST logs-firewall/_doc
+{
+  "@timestamp": "2026-09-23T20:00:10Z",
+  "message": "timestamp=2026-09-23T20:00:10Z hostname=fw-01 src_ip=198.51.100.25 dest_ip=10.0.1.8 src_port=44112 dest_port=3389 proto=tcp action=deny"
+}
+
+POST logs-firewall/_doc
+{
+  "@timestamp": "2026-09-23T20:00:15Z",
+  "message": "timestamp=2026-09-23T20:00:15Z hostname=fw-01 src_ip=10.0.0.15 dest_ip=8.8.8.8 src_port=53100 dest_port=53 proto=udp action=allow"
+}
+
+# 5) Depois que o Spark estiver rodando, envie um log NOVO
+#    e veja o alerta aparecer sem reiniciar o app.
+#    Troque o IP para 192.0.2.50 (também está na deny list) ou use um IP limpo.
+POST logs-firewall/_doc
+{
+  "@timestamp": "now",
+  "message": "timestamp=2026-09-23T20:10:00Z hostname=fw-01 src_ip=192.0.2.50 dest_ip=10.0.1.20 src_port=60001 dest_port=22 proto=tcp action=deny"
+}
+
+# 6) Conferir os incidentes gravados pelo Spark
+GET incidentes/_search
+{
+  "sort": [{ "@timestamp": "desc" }]
+}
