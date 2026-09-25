@@ -95,10 +95,7 @@ Na tela do Master (`8080`), confirme que aparecem **3 workers** conectados.
 Rode o script que cria um DataFrame simples:
 
 ```bash
-docker compose exec spark-master \
-  /opt/spark/bin/spark-submit \
-  --master spark://spark-master:7077 \
-  /opt/spark-apps/hello_spark.py
+docker compose exec spark-master   /opt/spark/bin/spark-submit   --master spark://spark-master:7077   /opt/spark-apps/hello_spark.py
 ```
 
 **Resultado esperado:** uma tabela com nomes/idades, o total de linhas e a versão do Spark.
