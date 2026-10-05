@@ -36,8 +36,8 @@
     </table>
 
     <script>
-        // Configuração do Elasticsearch (ajuste o IP/Porta se necessário)
-        const ELASTIC_URL = 'http://host.docker.internal:9200/incidentes/_search';
+        // Mesma origem do painel: o Nginx encaminha /es/ para o Elasticsearch.
+        const ELASTIC_URL = '/es/incidentes/_search';
 
         async function carregarIncidentes() {
             try {
