@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  painel-web:
+    image: nginx:alpine
+    container_name: painel_incidentes_web
+    ports:
+      - "80:80"
+    volumes:
+      # Mapeia o ficheiro index.html da sua máquina para dentro da pasta pública do Nginx
+      - ./index.html:/usr/share/nginx/html/index.html:ro
+    restart: always        
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  elastic-net:
+    external: true

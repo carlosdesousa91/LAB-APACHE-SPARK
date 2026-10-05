@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Incidentes</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f6f9; }
+        h1 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #007bff; color: white; }
+        tr:hover { background-color: #f1f1f1; }
+        .badge { padding: 5px 10px; border-radius: 4px; font-weight: bold; }
+        .deny { background-color: #ffcccc; color: #cc0000; }
+        .allow { background-color: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+
+    <h1>Painel de Incidentes (Elasticsearch)</h1>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Data/Hora</th>
+                <th>IP Origem</th>
+                <th>IP Destino</th>
+                <th>Ação</th>
+                <th>Mensagem Completa</th>
+            </tr>
+        </thead>
+        <tbody id="tabela-incidentes">
+            <tr><td colspan="5">A carregar incidentes...</td></tr>
+        </tbody>
+    </table>
+
+    <script>
+        // Configuração do Elasticsearch (ajuste o IP/Porta se necessário)
+        const ELASTIC_URL = 'http://host.docker.internal:9200/incidentes/_search';
+
+        async function carregarIncidentes() {
+            try {
+                // Procura simples limitando aos 50 registos mais recentes
+                const resposta = await fetch(ELASTIC_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        size: 50,
+                        sort: [{ "@timestamp": "desc" }]
+                    })
+                });
+
+                if (!resposta.ok) throw new Error('Erro ao comunicar com o Elasticsearch');
+
+                const dados = await resposta.json();
+                const incidentes = dados.hits.hits;
+                const tbody = document.getElementById('tabela-incidentes');
+                tbody.innerHTML = '';
+
+                if (incidentes.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5">Nenhum incidente encontrado.</td></tr>';
+                    return;
+                }
+
+                // Renderiza cada linha baseado no modelo do seu JSON
+                incidentes.forEach(item => {
+                    const fonte = item._source;
+                    const classeAcao = fonte.action === 'deny' ? 'deny' : 'allow';
+
+                    const linha = `
+                        <tr>
+                            <td>${new Date(fonte['@timestamp']).toLocaleString()}</td>
+                            <td>${fonte.src_ip || '-'}</td>
+                            <td>${fonte.dest_ip || '-'}</td>
+                            <td><span class="badge ${classeAcao}">${fonte.action || 'unknown'}</span></td>
+                            <td><small>${fonte.message || '-'}</small></td>
+                        </tr>
+                    `;
+                    tbody.insertAdjacentHTML('beforeend', linha);
+                });
+
+            } catch (erro) {
+                console.error(erro);
+                document.getElementById('tabela-incidentes').innerHTML = 
+                    `<tr><td colspan="5" style="color:red;">Erro ao carregar dados: ${erro.message}</td></tr>`;
+            }
+        }
+
+        // Executa a busca ao abrir a página
+        carregarIncidentes();
+    </script>
+</body>
+</html>

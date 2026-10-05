@@ -32,6 +32,9 @@ services:
       timeout: 5s
       retries: 20
       start_period: 30s
+    #http.cors.enabled: true
+    #http.cors.allow-origin: "http://localhost:8080"
+    #http.cors.allow-headers: "X-Requested-With, Content-Type, Content-Length, Authorization"
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.17.0
